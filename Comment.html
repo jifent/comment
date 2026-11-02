@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Отзыв</title><link rel="stylesheet" href="../App.css"><script src="https://telegram.org/js/telegram-web-app.js"></script></head>
+<body><main>
+<h1>Ваш отзыв</h1>
+<div class="stars" id="stars"></div>
+<label>Комментарий</label><textarea id="text" rows="5" maxlength="500" placeholder="Как всё прошло?"></textarea>
+<div class="hint err" id="err"></div>
+<button class="btn primary" id="send" disabled>Отправить</button>
+</main>
+<script src="../App.js"></script>
+<script>
+back('../InfoForUser/Reviews.html');
+const last = store.get('lastOrder', null), number = param('order') || (last && last.id);
+if (!number) go('../InfoForUser/Reviews.html');
+let rating = 0;
+for (let i = 1; i <= 5; i++) {
+    const b = el('button', '', '★'); b.type = 'button';
+    b.onclick = () => { rating = i; [...$('stars').children].forEach((c, j) => c.classList.toggle('on', j < i)); $('send').disabled = false; };
+    $('stars').append(b);
+}
+$('send').onclick = async () => {
+    $('send').disabled = true;
+    try {
+        await api('/reviews', { json: { order: number, rating, text: $('text').value } });
+        if (last && last.id === number) store.set('lastOrder', { id: number, reviewed: true });
+        go('../InfoForUser/Reviews.html');
+    } catch (e) { $('err').textContent = e.message; $('send').disabled = false; }
+};
+</script></body></html>
